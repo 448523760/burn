@@ -492,6 +492,13 @@ where
         // Create the temp database file and wrap it with a gix_tempfile::Handle
         // This will ensure that the temp file is deleted when the writer is dropped
         // or when process exits with SIGINT or SIGTERM (tempfile crate does not do this)
+        // 创建一个临时数据库文件，并使用 gix_tempfile::Handle 进行包装。
+        // 这样可以确保在写入器被释放或进程以 SIGINT 或 SIGTERM 退出时删除临时文件。这是因为 tempfile crate 不会自动执行这些操作。
+
+        // 设置信号处理器，用于在进程接收到 SIGINT 或 SIGTERM 信号时删除临时文件。
+        // gix_tempfile 是一个用于创建临时文件的 Rust 库
+        // - SIGINT（中断信号）通常由用户在终端上按下Ctrl+C触发，用于请求进程终止或中断执行。它是一个交互式的终止信号，允许进程在终止之前进行清理操作。
+        // - SIGTERM（终止信号）是一种通用的终止信号，用于请求进程正常终止。它可以由操作系统、系统管理员或其他进程发送，以通知进程停止运行并进行清理。与SIGINT不同，SIGTERM在终止进程时不提供交互式的机会，而是直接终止进程的执行。
         gix_tempfile::signal::setup(Default::default());
         self.db_file_tmp = Some(gix_tempfile::writable_at(
             &db_file_tmp,
