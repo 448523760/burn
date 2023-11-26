@@ -24,9 +24,16 @@ Unlike other frameworks, a module does not force the declaration of the forward 
 Additionally, most modules are created using a (de)serializable configuration, which defines the structure of the module and its hyper-parameters.
 Parameters and hyper-parameters are not serialized into the same file and both are normally necessary to load a module for inference.
 
+模块是一种创建神经网络结构的方法，可以轻松进行优化、保存和加载，几乎不需要冗长的样板代码。
+与其他框架不同，模块不强制要求声明前向传递（forward pass），而是由实现者决定如何定义它。
+此外，大多数模块使用可（反）序列化的配置进行创建，该配置定义了模块的结构和超参数。
+参数和超参数不会被序列化到同一个文件中，通常需要同时加载这两者才能进行推断
+
+
 ### Optimization
 
 Optimization is normally done with gradient descent (or ascent for reinforcement learning), and it is important to provide an easy API for optimizing modules.
+通常使用梯度下降（或增强学习中的梯度上升）进行优化，提供一个简单的 API 来优化模块非常重要。
 
 #### Constraints
 
@@ -35,6 +42,7 @@ Optimization is normally done with gradient descent (or ascent for reinforcement
 2. __Optimizers should have a serializable state that is updated during training.__
     Many optimizers keep track of previous gradients to implement some form of momentum.
     However, the state can be anything, not just tensors, allowing for easy implementation of any kind of optimizer.
+    许多优化器会跟踪先前的梯度以实现某种形式的动量。 然而，状态可以是任何东西，不仅限于张量，这样可以轻松实现任何类型的优化器。
 3. __The learning rate can be updated during training.__
     Learning rate schedulers are often used during training and should be considered as a key aspect.
 
@@ -48,9 +56,10 @@ Secondly, two traits were created.
 The `Optimizer` trait is general and relatively unopinionated, with a simple `step` method that takes a learning rate, a module, and the gradients.
 The other trait, `SimpleOptimizer`, aims to provide an easier API for implementing new optimizers.
 The goal is to allow implementations to avoid handling missing gradients, loading and exporting records, navigating the module parameter structure, handling tracked and untracked tensors, and other such tasks.
+特质是通用且相对不具备明确意见的，它有一个简单的 step 方法，接受学习率、模块和梯度作为参数。
 
 Thirdly, each tensor that will be optimized needs to be wrapped into a `Param` struct, which gives them an ID used for (de)serialization and to associate the state of the optimizer to each parameter.
-The `Module` trait has two ways to navigate over parameters.
+The `Module` trait has two ways to navigate over parameters. *(Module 特质有两种遍历参数的方式)*
 The first one is the `map` function, which returns `Self` and makes it easy to implement any transformation and mutate all parameters.
 The second one is the `visit` function, which has a similar signature but does not mutate the parameter tensors.
 
@@ -62,7 +71,7 @@ The `SimpleOptimizer` has two major assumptions:
 In other words, each parameter has its own optimizer state, decoupled from the other parameters.
 2. The state of the optimizer implements `Record`, `Clone`, and has a `'static` lifetime.
 
-The benefits of those assumptions materialize in simplicity with little loss in flexibility.
+The benefits of those assumptions materialize in simplicity with little loss in flexibility. *(这些假设的好处在于简化了实现，并在灵活性上几乎没有损失。)*
 The state associative type is also generic over the dimension, making it extremely easy to include tensors in the state that share the same dimensionality as its parameter.
 
 To wrap a simple optimizer into the more general `Optimizer` trait, the `OptimizerAdaptor` struct is used.
@@ -98,6 +107,7 @@ Despite appearing as a simple feature, it involves numerous constraints that req
 
     This can include constants, database connections, other module references, or any other information.
     Only parameters should be serialized since the structure of the module itself should be encapsulated with module configurations (hyper-parameters).
+    只有参数应该被序列化，因为模块本身的结构应该与模块配置（超参数）封装在一起。
 
 3. __Users should be able to declare the format in which the module should be saved.__
 
@@ -220,3 +230,10 @@ As of now, there is only one backend decorator that supports autodiff.
 It follows the decorator pattern, making any backend differentiable.
 However, the `AutodiffBackend` trait abstracts how gradients are calculated, and other approaches to autodiff might be added later.
 For more information about how the current autodiff backend works, you can read this [blog post](https://burn-rs.github.io/blog/burn-rusty-approach-to-tensor-handling).
+
+深度学习中的自动微分（autodiff）是一种关键技术，它在训练神经网络时起到了重要的作用。自动微分使得计算梯度变得更加高效和方便，从而能够自动地计算函数相对于输入的导数。
+自动微分的优点包括：
+- 省去手动计算梯度的麻烦：在传统的机器学习方法中，需要手动推导和计算梯度。而自动微分通过符号计算和链式法则，能够自动地计算出复杂函数的梯度，减轻了人工计算的负担。
+- 支持任意复杂的计算图：深度学习中的模型通常具有大量的参数和复杂的计算图结构。自动微分能够处理任意复杂的计算图，并计算出每个参数的梯度，使得模型的训练更加灵活和高效。
+- 可以处理动态图：一些深度学习框架（如PyTorch和TensorFlow）采用动态图的方式进行计算。自动微分能够轻松处理动态计算图，允许用户在模型定义和训练过程中进行灵活的操作。
+- 支持高阶导数计算：自动微分不仅能够计算一阶导数（梯度），还可以计算高阶导数。这对于某些优化算法和模型的设计非常有用，例如二阶优化算法和Hessian矩阵的计算。
