@@ -144,6 +144,8 @@ impl HuggingfaceDatasetLoader {
 
         let db_file = base_dir.join(db_file_name);
 
+        println!(">>> path: {:?}", &db_file);
+        println!(">>> huggingface_cache_dir path:\r\n {:?}", &self.huggingface_cache_dir);
         // import the dataset if needed
         if !Path::new(&db_file).exists() {
             import(

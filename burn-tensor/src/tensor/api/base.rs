@@ -54,6 +54,9 @@ where
     /// Returns the dimensions of the current tensor.
     ///
     /// Equivalent to `tensor.shape().dims`.
+    ///
+    /// 该函数返回一个固定大小的数组，数组中的元素类型为 usize，数组的长度由泛型类型参数 D 决定。
+    ///
     pub fn dims(&self) -> [usize; D] {
         Self::shape(self).dims
     }

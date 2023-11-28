@@ -17,7 +17,7 @@ burn = { version = "0.10.0", features=["train", "wgpu"]}
 serde = "1"
 ```
 
-Our goal will be to create a basic convolutional neural network used for image classification. We
+Our goal will be to create a basic **CNN[convolutional neural network]** used for image classification. We
 will keep the model simple by using two convolution layers followed by two linear layers, some
 pooling and ReLU activations. We will also use dropout to improve training performance.
 
@@ -51,14 +51,14 @@ pub struct Model<B: Backend> {
 There are two major things going on in this code sample.
 
 1. You can create a deep learning module with the `#[derive(Module)]` attribute on top of a struct.
-   This will generate the necessary code so that the struct implements the `Module` trait. This
+   **This will generate the necessary code so that the struct implements the `Module` trait.** This
    trait will make your module both trainable and (de)serializable while adding related
    functionalities. Like other attributes often used in Rust, such as `Clone`, `PartialEq` or
    `Debug`, each field within the struct must also implement the `Module` trait.
 
-2. Note that the struct is generic over the `Backend` trait. The backend trait abstracts the
+2. Note that the struct is generic over the `Backend` trait. **The backend trait abstracts the
    underlying low level implementations of tensor operations, allowing your new model to run on any
-   backend. Contrary to other frameworks, the backend abstraction isn't determined by a compilation
+   backend.** Contrary to other frameworks, the backend abstraction isn't determined by a compilation
    flag or a device type. This is important because you can extend the functionalities of a specific
    backend (see [backend extension section](../advanced/backend-extension)), and it allows for an
    innovative [autodiff system](../building-blocks/autodiff.md). You can also change backend during runtime, for instance to compute
@@ -107,6 +107,14 @@ specific case, we have chosen to expand the tensor channels from 1 to 8 with the
 from 8 to 16 with the second layer, using a kernel size of 3 on all dimensions. We also use the
 adaptive average pooling module to reduce the dimensionality of the images to an 8 by 8 matrix,
 which we will flatten in the forward pass to have a 1024 (16 _ 8 _ 8) resulting tensor.
+
+代码定义了一个名为ModelConfig的结构体，该结构体包含了神经网络模型的配置参数，包括num_classes（类别数量）、hidden_size（隐藏层大小）和dropout（丢弃率）等。
+
+接下来是ModelConfig的实现部分。其中的init方法用于初始化模型，并返回一个名为Model的实例。在init方法中，使用了不同的配置参数来实例化模型的各个组件，
+包括conv1（卷积层1）、conv2（卷积层2）、pool（自适应平均池化层）、activation（ReLU激活函数）、linear1（全连接层1）、linear2（全连接层2）和dropout（丢弃层）。
+
+在初始化方法中，使用了配置结构体中定义的参数来设置模型的各个组件。具体地，第一个卷积层将输入的tensor通道从1扩展到8，第二个卷积层将通道从8扩展到16，卷积核大小均为3。
+然后使用自适应平均池化层将图像的维度降低为8x8的矩阵，在前向传播过程中将其展平为1024（16x8x8）维的tensor。
 
 Now let's see how the forward pass is defined.
 

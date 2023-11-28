@@ -33,6 +33,10 @@ not all backends expose the same devices. As an example, the Libtorch-based back
 `Cuda(gpu_index)`, `Cpu`, `Vulkan` and `Metal` devices, while the ndarray backend only exposes the
 `Cpu` device.
 
+这段代码定义了一个批处理器（batcher）结构体，用于将张量发送到模型之前指定的设备上。
+注意，设备是Backend trait的关联类型，因为不同的后端可能不会暴露相同的设备类型。
+例如，基于Libtorch的后端暴露了Cuda(gpu_index)、Cpu、Vulkan和Metal设备，而ndarray后端只暴露了Cpu设备。
+
 Next, we need to actually implement the batching logic.
 
 ```rust , ignore
@@ -76,3 +80,24 @@ information without being specific for a backend. When creating a tensor from da
 convert the data precision to the current backend in use. This can be done with the `.convert()`
 method. While importing the `burn::tensor::ElementConversion` trait, you can call `.elem()` on a
 specific number to convert it to the current backend element type in use.
+
+
+```text
+MNISTBatch 结构体包含两个字段：images 和 targets，分别表示图像和对应目标的张量。
+
+在实现中，batch 函数接受一个 MNISTItem 实例的向量作为输入，并返回一个 MNISTBatch 实例。
+它处理输入项以创建 images 和 targets 张在提供的代码片段中，定义了一个名为 MNISTBatch<B: Backend> 的结构体。
+它实现了 Batcher<MNISTItem, MNISTBatch<B>> trait，其中 B 表示所使用的后端（backend）。
+MNISTBatch 结构体包含两个字段：images 和 targets，分别表示图像和对应目标的张量。
+
+images 张量的创建涉及对每个项的图像数据执行一系列操作：
+1. 将图像数据转换为 Data<f32, 2> 对象。
+2. 使用适当的后端特定转换方法从数据创建张量。
+3. 将张量重塑为维度为 [1, 28, 28]。
+4. 将张量的值归一化为 [0, 1]，并具有均值为 0.1307 和标准差为 0.3081，这是根据 PyTorch MNIST 示例中的规范进行的。
+   
+targets 张量的创建涉及将每个项的标签转换为 i64，然后从中创建张量。
+最后，images 和 targets 张量在第 0 维上进行连接，并移动到 self.device 指定的设备上。
+使用这些张量创建一个 MNISTBatch 实例，并由 batch 函数返回。
+```
+
